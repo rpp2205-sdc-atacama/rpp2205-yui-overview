@@ -31,7 +31,7 @@ drop table if exists styles (
 
 drop table if exists price;
 create table price (
-  id int primary key,
+  price_id int primary key,
   style_id int,
   original_price decimal,
   sale_price decimal,
