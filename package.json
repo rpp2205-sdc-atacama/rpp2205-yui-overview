@@ -1,0 +1,22 @@
+{
+  "name": "rpp2205-yui-overview",
+  "version": "1.0.0",
+  "description": "",
+  "main": "example.test.js",
+  "scripts": {
+    "test": "jest"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/rpp2205-sdc-atacama/rpp2205-yui-overview.git"
+  },
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/rpp2205-sdc-atacama/rpp2205-yui-overview/issues"
+  },
+  "homepage": "https://github.com/rpp2205-sdc-atacama/rpp2205-yui-overview#readme",
+  "dependencies": {
+    "jest": "^29.3.0"
+  }
+}
