@@ -23,7 +23,8 @@ create table features (
   foreign key (product_id) references product (id)
 );
 
-drop table if exists styles (
+drop table if exists styles;
+create table styles (
   id integer primary key,
   productId integer,
   name varchar(100),
