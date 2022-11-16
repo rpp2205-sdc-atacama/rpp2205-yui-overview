@@ -1,9 +1,9 @@
-drop table if exists product;
+drop table if exists product cascade;
 create table product (
   id integer primary key,
-  name character varying(100),
-  description varchar(255),
-  slogan character varying(100),
+  name text,
+  description text,
+  slogan text,
   category character varying(50),
   default_price integer
 );
@@ -17,7 +17,7 @@ create table features (
   foreign key (product_id) references product (id)
 );
 
-drop table if exists styles;
+drop table if exists styles cascade;
 create table styles (
   id integer primary key,
   productId integer,
@@ -32,8 +32,8 @@ drop table if exists photos;
 create table photos (
   id integer primary key,
   styleId integer,
-  thumbnail_url character varying(255),
-  url character varying(255),
+  thumbnail_url text,
+  url text,
   foreign key (styleId) references styles (id)
 );
 
