@@ -105,3 +105,5 @@ dist
 
 # Unnesessary data
 database/dataset
+database/schema_v2.sql
+.DS_Store
