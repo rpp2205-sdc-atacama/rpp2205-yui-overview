@@ -104,4 +104,7 @@ dist
 .tern-port
 
 # Unnesessary data
-database/dataset
+# .server/database/dataset
+server/database/dataset
+server/database/schema/schema_v2.sql
+.DS_Store
