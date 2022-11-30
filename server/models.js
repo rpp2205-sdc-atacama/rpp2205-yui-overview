@@ -68,7 +68,7 @@ class Models {
 
         eachResult['style_id'] = styleId;
         eachResult['name'] = data.rows[i].name;
-        eachResult['default_style'] = data.rows[i].default_style;
+        eachResult['default?'] = (data.rows[i].default_style === 1);
 
         let priceSql = 'select sale_price, original_price from prices where style_id = $1';
         let priceData = await pool.query(priceSql, [styleId]);
