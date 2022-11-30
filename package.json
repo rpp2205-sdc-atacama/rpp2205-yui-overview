@@ -4,7 +4,7 @@
   "description": "",
   "main": "example.test.js",
   "scripts": {
-    "start": "nodemon ./database/script.js",
+    "start": "nodemon ./server/index.js",
     "test": "jest"
   },
   "repository": {
@@ -18,9 +18,14 @@
   },
   "homepage": "https://github.com/rpp2205-sdc-atacama/rpp2205-yui-overview#readme",
   "dependencies": {
+    "dotenv": "^16.0.3",
+    "express": "^4.18.2",
     "jest": "^29.3.0",
     "mocha": "^10.1.0",
     "mongoose": "^6.7.2",
-    "nodemon": "^2.0.20"
-  }
+    "nodemon": "^2.0.20",
+    "pg": "^8.8.0",
+    "pg-pool": "^3.5.2"
+  },
+  "type": "module"
 }
