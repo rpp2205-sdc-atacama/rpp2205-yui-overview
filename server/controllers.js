@@ -11,8 +11,9 @@ class Controllers {
     return result;
   }
 
-  async getStyles(req) {
-    return await this.Models.getStyles(req);
+  async getStyles(productId) {
+    let result = await this.Models.getStyles(productId);
+    return result;
   }
 }
 
