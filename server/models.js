@@ -47,10 +47,8 @@ class Models {
 
   async getStyles(productId) {
     await pool.connect();
-
+    let result = {};
     try {
-      let result = {};
-
       // get style
       const sql = 'SELECT style_id, name, default_style FROM styles WHERE product_id = $1;'
       const data = await pool.query(sql, [productId.product_id]);
@@ -59,7 +57,7 @@ class Models {
       result['results'] = [];
 
       // console.log('data: ', data.rows);
-
+      console.log('how many rows* ', data.rows.length)
       // for each style, get price, photo and sku
       for (let i = 0; i < data.rows.length; i++) {
         // console.log(i)
@@ -102,11 +100,12 @@ class Models {
         // console.log('skuData: ', skuData.rows)
         result['results'].push(eachResult);
       }
-      console.log('final result: ', result)
+      console.log('final result: ', result);
 
     } catch (error) {
       console.log(error);
     }
+    return result;
   }
 }
 
