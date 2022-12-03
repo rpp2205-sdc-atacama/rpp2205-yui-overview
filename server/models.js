@@ -58,6 +58,18 @@ class Models {
       const styleData = await pool.query(styleSql, [productId.product_id]);
       const styles = styleData.rows;
 
+      const photoPriceSkuSql = 'SELECT st.style_id, pr.original_price, pr.sale_price, ph.thumbnail_url, ph.url, sk.sku_id, sk.size, sk.quantity FROM styles st INNER JOIN prices pr ON st.style_id = pr.style_id INNER JOIN photos ph ON st.style_id = ph.style_id INNER JOIN skus sk ON st.style_id = sk.style_id WHERE st.style_id = ANY($1::int[]);';
+      let style_ids = styles.map(x => x.style_id).sort();
+      console.log(style_ids)
+      const photoPriceSkuData = (await pool.query(photoPriceSkuSql, [style_ids])).rows;
+
+      photoPriceSkuData.filter(x => {
+        let style = {};
+        
+      })
+
+      console.log(photoPriceSkuData)
+
       for (let i = 0; i < styles.length; i++) {
         let style = {};
         let styleId = styles[i].style_id;
@@ -68,6 +80,8 @@ class Models {
         style['name'] = styleName;
         style['default?'] = styleDefault === 1;
 
+
+
         // get photo, price, sku for each style
         let photoPriceSkuSql = 'SELECT st.style_id, pr.original_price, pr.sale_price, ph.thumbnail_url, ph.url, sk.sku_id, sk.size, sk.quantity FROM styles st INNER JOIN prices pr ON st.style_id = pr.style_id INNER JOIN photos ph ON st.style_id = ph.style_id INNER JOIN skus sk ON st.style_id = sk.style_id WHERE st.style_id = $1;';
         let photoPriceSkuData = await pool.query(photoPriceSkuSql, [styleId]);
@@ -75,7 +89,7 @@ class Models {
         style['photos'] = [];
         style['skus'] = {};
 
-        for (let j = 0; j < photoPriceSkuData.rows.length; j++) {
+        for (let j = 0; j < photoPriceSkuData.length; j++) {
           let originalPrice = photoPriceSkuData.rows[i].original_price;
           let salePrice = photoPriceSkuData.rows[i].sale_price;
           let thumbnailUrl = photoPriceSkuData.rows[i].thumbnail_url;
