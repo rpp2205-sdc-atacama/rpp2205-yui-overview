@@ -41,71 +41,74 @@ class Models {
       result['features'] = features;
       return result;
     } catch (error) {
-      console.log('error: ', error);
+      return err;
     }
   }
 
   async getStyles(productId) {
     await pool.connect();
+
     let result = {};
+    result['product_id'] = productId.product_id;
+    result['results'] = [];
+
     try {
       // get style
-      const sql = 'SELECT style_id, name, default_style FROM styles WHERE product_id = $1;'
-      const data = await pool.query(sql, [productId.product_id]);
+      const styleSql = 'SELECT style_id, name, default_style FROM styles WHERE product_id = $1;'
+      const styleData = await pool.query(styleSql, [productId.product_id]);
+      const styles = styleData.rows;
 
-      result['product_id'] = productId.product_id;
-      result['results'] = [];
+      for (let i = 0; i < styles.length; i++) {
+        let style = {};
+        let styleId = styles[i].style_id;
+        let styleName = styles[i].name;
+        let styleDefault = styles[i].default_style;
 
-      // console.log('data: ', data.rows);
-      console.log('how many rows* ', data.rows.length)
-      // for each style, get price, photo and sku
-      for (let i = 0; i < data.rows.length; i++) {
-        // console.log(i)
-        let eachResult = {};
-        let styleId = data.rows[i].style_id;
+        style['style_id'] = styleId;
+        style['name'] = styleName;
+        style['default?'] = styleDefault === 1;
 
-        eachResult['style_id'] = styleId;
-        eachResult['name'] = data.rows[i].name;
-        eachResult['default?'] = (data.rows[i].default_style === 1);
+        // get photo, price, sku for each style
+        let photoPriceSkuSql = 'SELECT st.style_id, pr.original_price, pr.sale_price, ph.thumbnail_url, ph.url, sk.sku_id, sk.size, sk.quantity FROM styles st INNER JOIN prices pr ON st.style_id = pr.style_id INNER JOIN photos ph ON st.style_id = ph.style_id INNER JOIN skus sk ON st.style_id = sk.style_id WHERE st.style_id = $1;';
+        let photoPriceSkuData = await pool.query(photoPriceSkuSql, [styleId]);
 
-        let priceSql = 'select sale_price, original_price from prices where style_id = $1';
-        let priceData = await pool.query(priceSql, [styleId]);
+        style['photos'] = [];
+        style['skus'] = {};
 
-        eachResult['original_price'] = priceData.rows[0].original_price;
-        eachResult['sale_price'] = priceData.rows[0].sale_price;
+        for (let j = 0; j < photoPriceSkuData.rows.length; j++) {
+          let originalPrice = photoPriceSkuData.rows[i].original_price;
+          let salePrice = photoPriceSkuData.rows[i].sale_price;
+          let thumbnailUrl = photoPriceSkuData.rows[i].thumbnail_url;
+          let url = photoPriceSkuData.rows[i].url;
+          let skuId = photoPriceSkuData.rows[i].sku_id;
+          let quantity = photoPriceSkuData.rows[i].quantity;
+          let size = photoPriceSkuData.rows[i].size;
 
-        // console.log('priceData: ', priceData.rows)
+          if (!style['original_price'] || !style['sale_price']) {
+            style['original_price'] = originalPrice.toString();
+            style['sale_price'] = salePrice;
+          }
 
-        let photoSql = 'select thumbnail_url, url from photos where style_id = $1';
-        let photoData = await pool.query(photoSql, [styleId]);
+          let photo = {};
+          photo['thumbnail_url'] = thumbnailUrl;
+          photo['url'] = url;
+          style['photos'].push(photo);
 
-        eachResult['photos'] = photoData.rows;
+          let sku = {};
+          sku['quantity'] = quantity;
+          sku['size'] = size;
 
-        // console.log('photoData: ', photoData.rows)
-
-        let skuSql = 'select sku_id, size, quantity from skus where style_id = $1';
-        let skuData = await pool.query(skuSql, [styleId]);
-
-        eachResult['skus'] = {};
-
-        for (let i = 0; i < skuData.rows.length; i++) {
-          let skuId = skuData.rows[i].sku_id;
-          let subSkuData = {};
-          subSkuData['quantity'] = skuData.rows[i].quantity;
-          subSkuData['size'] = skuData.rows[i].size;
-
-          eachResult['skus'][skuId] = subSkuData;
+          style['skus'][skuId] = sku;
         }
 
-        // console.log('skuData: ', skuData.rows)
-        result['results'].push(eachResult);
+        result['results'].push(style);
       }
-      console.log('final result: ', result);
 
-    } catch (error) {
-      console.log(error);
+      console.log('final result: ', result);
+      return result;
+    } catch(err) {
+      return err;
     }
-    return result;
   }
 }
 
