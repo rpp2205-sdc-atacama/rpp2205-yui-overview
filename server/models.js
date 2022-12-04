@@ -45,7 +45,7 @@ class Models {
       result['features'] = features;
       return result;
     } catch (error) {
-      return err;
+      return error;
     } finally {
       client.end();
     }
@@ -111,8 +111,8 @@ class Models {
 
       console.log('final result: ', result);
       return result;
-    } catch(err) {
-      return err;
+    } catch(error) {
+      return error;
     } finally {
       client.end();
     }
