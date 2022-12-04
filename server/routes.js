@@ -13,7 +13,8 @@ class Routes {
     });
 
     app.get('/products/:product_id/styles', async (req, res) => {
-      const response = await this.Controllers.getStyles(req.body);
+      let productId = req.params;
+      const response = await this.Controllers.getStyles(productId);
       res.send(response);
     })
   }
