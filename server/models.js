@@ -1,8 +1,10 @@
-import Pool from 'pg-pool';
+import pkg from 'pg';
+const { Client } = pkg;
+// import { Client } from 'pg';
 import dotenv from 'dotenv';
 dotenv.config();
 
-const pool = new Pool({
+const client = new Client({
   user: process.env.USER,
   host: process.env.HOST,
   database: process.env.DATABASE,
@@ -10,13 +12,15 @@ const pool = new Pool({
   port: process.env.PORT
 });
 
+// client.connect();
+
 class Models {
   async getProduct(productId) {
-    await pool.connect();
+    await client.connect();
 
     try {
       const sql = 'SELECT p.id, p.name, p.description, p.slogan, p.category, p.default_price, f.feature, f.value FROM product_info p INNER JOIN features f ON p.id = f.product_id WHERE p.id = $1;';
-      const data = await pool.query(sql, [productId.product_id]);
+      const data = await client.query(sql, [productId.product_id]);
 
       let result = {};
       let features = [];
@@ -42,21 +46,23 @@ class Models {
       return result;
     } catch (error) {
       return err;
+    } finally {
+      client.end();
     }
   }
 
   async getStyles(productId) {
-    await pool.connect();
+    await client.connect();
 
     let result = {};
     result['product_id'] = productId.product_id;
     result['results'] = [];
 
     try {
-      // get style
       const styleSql = 'SELECT style_id, name, default_style FROM styles WHERE product_id = $1;'
-      const styleData = await pool.query(styleSql, [productId.product_id]);
+      const styleData = await client.query(styleSql, [productId.product_id]);
       const styles = styleData.rows;
+      console.log(styles)
 
       for (let i = 0; i < styles.length; i++) {
         let style = {};
@@ -68,9 +74,8 @@ class Models {
         style['name'] = styleName;
         style['default?'] = styleDefault === 1;
 
-        // get photo, price, sku for each style
         let photoPriceSkuSql = 'SELECT st.style_id, pr.original_price, pr.sale_price, ph.thumbnail_url, ph.url, sk.sku_id, sk.size, sk.quantity FROM styles st INNER JOIN prices pr ON st.style_id = pr.style_id INNER JOIN photos ph ON st.style_id = ph.style_id INNER JOIN skus sk ON st.style_id = sk.style_id WHERE st.style_id = $1;';
-        let photoPriceSkuData = await pool.query(photoPriceSkuSql, [styleId]);
+        let photoPriceSkuData = await client.query(photoPriceSkuSql, [styleId]);
 
         style['photos'] = [];
         style['skus'] = {};
@@ -108,6 +113,8 @@ class Models {
       return result;
     } catch(err) {
       return err;
+    } finally {
+      client.end();
     }
   }
 }
