@@ -1,5 +1,6 @@
 import pkg from 'pg';
 const { Client } = pkg;
+const { Pool } = pkg;
 // import { Client } from 'pg';
 import dotenv from 'dotenv';
 dotenv.config();
@@ -12,15 +13,28 @@ const client = new Client({
   port: process.env.PORT
 });
 
+const pool = new Pool({
+  database: process.env.DATABASE,
+  user: process.env.USER,
+  password: process.env.PASSWORD,
+  host: process.env.HOST,
+  port: process.env.PORT,
+  ssl: false,
+  max: 20,
+  idleTimeoutMillis: 30000,
+  connectionTimeoutMillis: 2000,
+});
+
 // client.connect();
 
 class Models {
-  async getProduct(productId) {
-    await client.connect();
 
+  async getProduct(productId) {
     try {
+      //await client.connect();
+
       const sql = 'SELECT p.id, p.name, p.description, p.slogan, p.category, p.default_price, f.feature, f.value FROM product_info p INNER JOIN features f ON p.id = f.product_id WHERE p.id = $1;';
-      const data = await client.query(sql, [productId.product_id]);
+      const data = await pool.query(sql, [productId.product_id]);
 
       let result = {};
       let features = [];
@@ -47,7 +61,8 @@ class Models {
     } catch (error) {
       return error;
     } finally {
-      client.end();
+
+      //client.end();
     }
   }
 
@@ -62,7 +77,6 @@ class Models {
       const styleSql = 'SELECT style_id, name, default_style FROM styles WHERE product_id = $1;'
       const styleData = await client.query(styleSql, [productId.product_id]);
       const styles = styleData.rows;
-      console.log(styles)
 
       for (let i = 0; i < styles.length; i++) {
         let style = {};
@@ -109,7 +123,7 @@ class Models {
         result['results'].push(style);
       }
 
-      console.log('final result: ', result);
+      // console.log('final result: ', result);
       return result;
     } catch(error) {
       return error;
