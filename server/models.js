@@ -1,10 +1,9 @@
 import pkg from 'pg';
-const { Client } = pkg;
-// import { Client } from 'pg';
+const { Pool } = pkg;
 import dotenv from 'dotenv';
 dotenv.config();
 
-const client = new Client({
+const pool = new Pool({
   user: process.env.USER,
   host: process.env.HOST,
   database: process.env.DATABASE,
@@ -12,15 +11,13 @@ const client = new Client({
   port: process.env.PORT
 });
 
-// client.connect();
-
 class Models {
   async getProduct(productId) {
-    await client.connect();
-
+    const client = await pool.connect();
     try {
       const sql = 'SELECT p.id, p.name, p.description, p.slogan, p.category, p.default_price, f.feature, f.value FROM product_info p INNER JOIN features f ON p.id = f.product_id WHERE p.id = $1;';
-      const data = await client.query(sql, [productId.product_id]);
+      // const data = await client.query(sql, [productId.product_id]);
+      const data = await pool.query(sql, [productId.product_id]);
 
       let result = {};
       let features = [];
@@ -41,18 +38,18 @@ class Models {
 
         features.push(feature);
       }
-
       result['features'] = features;
       return result;
     } catch (error) {
       return error;
     } finally {
-      client.end();
+      pool.end()
+      //client.release()
     }
   }
 
   async getStyles(productId) {
-    await client.connect();
+    const client = await pool.connect();
 
     let result = {};
     result['product_id'] = productId.product_id;
@@ -62,7 +59,9 @@ class Models {
       const styleSql = 'SELECT style_id, name, default_style FROM styles WHERE product_id = $1;'
       const styleData = await client.query(styleSql, [productId.product_id]);
       const styles = styleData.rows;
-      console.log(styles)
+
+      let photoPriceSkuSqlTest = 'SELECT st.style_id, pr.original_price, pr.sale_price, ph.thumbnail_url, ph.url, sk.sku_id, sk.size, sk.quantity FROM styles st INNER JOIN prices pr ON st.style_id = pr.style_id INNER JOIN photos ph ON st.style_id = ph.style_id INNER JOIN skus sk ON st.style_id = sk.style_id WHERE st.style_id = ANY ($1);';
+      let photoPriceSkuDataTest = await client.query(photoPriceSkuSqlTest, [styles.map(x => x.style_id)]);
 
       for (let i = 0; i < styles.length; i++) {
         let style = {};
@@ -74,20 +73,22 @@ class Models {
         style['name'] = styleName;
         style['default?'] = styleDefault === 1;
 
-        let photoPriceSkuSql = 'SELECT st.style_id, pr.original_price, pr.sale_price, ph.thumbnail_url, ph.url, sk.sku_id, sk.size, sk.quantity FROM styles st INNER JOIN prices pr ON st.style_id = pr.style_id INNER JOIN photos ph ON st.style_id = ph.style_id INNER JOIN skus sk ON st.style_id = sk.style_id WHERE st.style_id = $1;';
-        let photoPriceSkuData = await client.query(photoPriceSkuSql, [styleId]);
+        let photoPriceSkuData = photoPriceSkuDataTest.rows.filter(x => x.style_id = styleId);
+        //console.log(photoPriceSkuData)
+        //let photoPriceSkuSql = 'SELECT st.style_id, pr.original_price, pr.sale_price, ph.thumbnail_url, ph.url, sk.sku_id, sk.size, sk.quantity FROM styles st INNER JOIN prices pr ON st.style_id = pr.style_id INNER JOIN photos ph ON st.style_id = ph.style_id INNER JOIN skus sk ON st.style_id = sk.style_id WHERE st.style_id = $1;';
+        //let photoPriceSkuData = await client.query(photoPriceSkuSql, [styleId]);
 
         style['photos'] = [];
         style['skus'] = {};
 
-        for (let j = 0; j < photoPriceSkuData.rows.length; j++) {
-          let originalPrice = photoPriceSkuData.rows[i].original_price;
-          let salePrice = photoPriceSkuData.rows[i].sale_price;
-          let thumbnailUrl = photoPriceSkuData.rows[i].thumbnail_url;
-          let url = photoPriceSkuData.rows[i].url;
-          let skuId = photoPriceSkuData.rows[i].sku_id;
-          let quantity = photoPriceSkuData.rows[i].quantity;
-          let size = photoPriceSkuData.rows[i].size;
+        for (let j = 0; j < photoPriceSkuData.length; j++) {
+          let originalPrice = photoPriceSkuData[i].original_price;
+          let salePrice = photoPriceSkuData[i].sale_price;
+          let thumbnailUrl = photoPriceSkuData[i].thumbnail_url;
+          let url = photoPriceSkuData[i].url;
+          let skuId = photoPriceSkuData[i].sku_id;
+          let quantity = photoPriceSkuData[i].quantity;
+          let size = photoPriceSkuData[i].size;
 
           if (!style['original_price'] || !style['sale_price']) {
             style['original_price'] = originalPrice.toString();
@@ -108,13 +109,12 @@ class Models {
 
         result['results'].push(style);
       }
-
-      console.log('final result: ', result);
       return result;
     } catch(error) {
       return error;
     } finally {
-      client.end();
+      pool.end()
+      //client.release();
     }
   }
 }

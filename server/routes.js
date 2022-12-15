@@ -9,13 +9,13 @@ class Routes {
     app.get('/products/:product_id', async (req, res) => {
       let productId = req.params;
       const response = await this.Controllers.getProduct(productId);
-      res.send(response);
+      res.status(200).send(response);
     });
 
     app.get('/products/:product_id/styles', async (req, res) => {
       let productId = req.params;
       const response = await this.Controllers.getStyles(productId);
-      res.send(response);
+      res.status(200).send(response);
     })
   }
 }
