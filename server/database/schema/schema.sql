@@ -28,7 +28,7 @@ create table styles (
 
 drop table if exists prices;
 create table prices (
-  price_id integer primary key serial,
+  price_id integer primary key,
   style_id integer,
   sale_price integer,
   original_price integer,
