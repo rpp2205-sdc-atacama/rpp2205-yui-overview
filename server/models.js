@@ -16,7 +16,6 @@ class Models {
     const client = await pool.connect();
     try {
       const sql = 'SELECT p.id, p.name, p.description, p.slogan, p.category, p.default_price, f.feature, f.value FROM product_info p INNER JOIN features f ON p.id = f.product_id WHERE p.id = $1;';
-      // const data = await client.query(sql, [productId.product_id]);
       const data = await pool.query(sql, [productId.product_id]);
 
       let result = {};
