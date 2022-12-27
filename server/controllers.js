@@ -6,14 +6,11 @@ class Controllers {
   }
 
   async getProduct(productId) {
-    let result = await this.Models.getProduct(productId);
-    console.log('result: ', result);
-    return result;
+    return await this.Models.getProduct(productId);
   }
 
   async getStyles(productId) {
-    let result = await this.Models.getStyles(productId);
-    return result;
+    return await this.Models.getStyles(productId);
   }
 }
 
