@@ -7,6 +7,7 @@ const __dirname = dirname(__filename);
 
 class Routes {
   constructor() {
+    console.log('hello from constoller')
     this.Controllers = new Controllers();
   }
 
