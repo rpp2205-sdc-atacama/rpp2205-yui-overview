@@ -2,6 +2,9 @@ import pkg from "pg";
 const { Pool } = pkg;
 import dotenv from "dotenv";
 dotenv.config();
+import { StopWatch } from 'stopwatch-node';
+
+const sleep = (ms) => new Promise(resolve => setTimeout(resolve, ms));
 
 const pool = new Pool({
   user: process.env.USER,
@@ -13,17 +16,23 @@ const pool = new Pool({
 
 class Models {
   async getProduct(productId) {
+    const sw = new StopWatch('sw');
+    sw.start('Task 1');
     const client = await pool.connect();
+    sw.stop();
     try {
+      sw.start('Task 2');
       const sql =
-        "SELECT p.id, p.name, p.description, p.slogan, p.category, p.default_price, f.feature, f.value FROM product_info p INNER JOIN features f ON p.id = f.product_id WHERE p.id = $1;";
+      "SELECT p.id, p.name, p.description, p.slogan, p.category, p.default_price, f.feature, f.value FROM product_info p INNER JOIN features f ON p.id = f.product_id WHERE p.id = $1;";
       const data = await client.query(sql, [productId.product_id]);
+      sw.stop();
 
-      console.log('data: ', data.rows);
+      //console.log('data: ', data.rows);
 
       let result = {};
       let features = [];
 
+      sw.start('Task 3');
       for (let i = 0; i < data.rows.length; i++) {
         if (
           !result["id"] ||
@@ -32,25 +41,33 @@ class Models {
           !result["slogan"] ||
           !result["category"] ||
           !result["default_price"]
-        ) {
-          result["id"] = data.rows[i]["id"];
-          result["name"] = data.rows[i]["name"];
-          result["description"] = data.rows[i]["description"];
-          result["slogan"] = data.rows[i]["slogan"];
-          result["category"] = data.rows[i]["category"];
-          result["default_price"] = data.rows[i]["default_price"].toString();
+          ) {
+            result["id"] = data.rows[i]["id"];
+            result["name"] = data.rows[i]["name"];
+            result["description"] = data.rows[i]["description"];
+            result["slogan"] = data.rows[i]["slogan"];
+            result["category"] = data.rows[i]["category"];
+            result["default_price"] = data.rows[i]["default_price"].toString();
+          }
+
+          let feature = {};
+          feature["feature"] = data.rows[i]["feature"];
+          feature["value"] = data.rows[i]["value"];
+
+          features.push(feature);
         }
+        result["features"] = features;
+      sw.stop();
 
-        let feature = {};
-        feature["feature"] = data.rows[i]["feature"];
-        feature["value"] = data.rows[i]["value"];
-
-        features.push(feature);
-      }
-      result["features"] = features;
+      console.info(`Short Summary: ${sw.shortSummary()}`);
+      console.info(`Task Count: ${sw.getTaskCount()}`);
+      // a table describing all tasks performed
+      sw.prettyPrint();
       return result;
     } catch (error) {
       return error;
+    } finally {
+      client.release();
     }
   }
 
@@ -124,6 +141,28 @@ class Models {
       return result;
     } catch (error) {
       return error;
+    }
+  }
+
+  async getRelated(productId) {
+    const client = await pool.connect();
+
+    try {
+      const sql = "SELECT related_product_id FROM related WHERE product_id=$1;";
+      const data = await client.query(sql, [productId.product_id]);
+
+      console.log("related: ", data.rows);
+
+      let result = [];
+      for (let i = 0; i < data.rows.length; i++) {
+        result.push(data.rows[i].related_product_id);
+      }
+
+      return result;
+    } catch (error) {
+      return error;
+    } finally {
+      client.release();
     }
   }
 }

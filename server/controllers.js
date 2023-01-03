@@ -12,6 +12,10 @@ class Controllers {
   async getStyles(productId) {
     return await this.Models.getStyles(productId);
   }
+
+  async getRelated(productId) {
+    return await this.Models.getRelated(productId);
+  }
 }
 
 export default Controllers;
