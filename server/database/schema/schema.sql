@@ -53,9 +53,18 @@ create table skus (
   foreign key (style_id) references styles (style_id)
 );
 
+drop table if exists related;
+create table related (
+  related_id serial primary key,
+  product_id integer,
+  related_product_id integer,
+  foreign key (product_id) references product_info (id)
+)
+
 CREATE index idx_product_id ON product_info(id);
 CREATE index idx_feature_id ON features(product_id);
 CREATE index idx_style ON styles(style_id);
 CREATE index idx_photos ON photos(style_id);
 CREATE index idx_prices ON prices(style_id);
 CREATE index idx_skus ON skus(style_id);
+CREATE index idx_related ON related(product_id);

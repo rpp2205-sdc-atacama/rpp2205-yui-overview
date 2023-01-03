@@ -66,6 +66,8 @@ class Models {
       return result;
     } catch (error) {
       return error;
+    } finally {
+      client.release();
     }
   }
 
@@ -139,6 +141,28 @@ class Models {
       return result;
     } catch (error) {
       return error;
+    }
+  }
+
+  async getRelated(productId) {
+    const client = await pool.connect();
+
+    try {
+      const sql = "SELECT related_product_id FROM related WHERE product_id=$1;";
+      const data = await client.query(sql, [productId.product_id]);
+
+      console.log("related: ", data.rows);
+
+      let result = [];
+      for (let i = 0; i < data.rows.length; i++) {
+        result.push(data.rows[i].related_product_id);
+      }
+
+      return result;
+    } catch (error) {
+      return error;
+    } finally {
+      client.release();
     }
   }
 }
