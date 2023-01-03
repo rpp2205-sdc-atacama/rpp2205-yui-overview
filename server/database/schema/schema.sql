@@ -63,7 +63,7 @@ create table related (
 
 CREATE index idx_product_id ON product_info(id);
 CREATE index idx_feature_id ON features(product_id);
-CREATE index idx_style ON styles(style_id);
+CREATE index idx_style ON styles(product_id);
 CREATE index idx_photos ON photos(style_id);
 CREATE index idx_prices ON prices(style_id);
 CREATE index idx_skus ON skus(style_id);

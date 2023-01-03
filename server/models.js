@@ -16,23 +16,23 @@ const pool = new Pool({
 
 class Models {
   async getProduct(productId) {
-    const sw = new StopWatch('sw');
-    sw.start('Task 1');
+    // const sw = new StopWatch('sw');
+    // sw.start('Task 1');
     const client = await pool.connect();
-    sw.stop();
+    // sw.stop();
     try {
-      sw.start('Task 2');
+      // sw.start('Task 2');
       const sql =
       "SELECT p.id, p.name, p.description, p.slogan, p.category, p.default_price, f.feature, f.value FROM product_info p INNER JOIN features f ON p.id = f.product_id WHERE p.id = $1;";
       const data = await client.query(sql, [productId.product_id]);
-      sw.stop();
+      // sw.stop();
 
       //console.log('data: ', data.rows);
 
       let result = {};
       let features = [];
 
-      sw.start('Task 3');
+      // sw.start('Task 3');
       for (let i = 0; i < data.rows.length; i++) {
         if (
           !result["id"] ||
@@ -57,12 +57,12 @@ class Models {
           features.push(feature);
         }
         result["features"] = features;
-      sw.stop();
+      // sw.stop();
 
-      console.info(`Short Summary: ${sw.shortSummary()}`);
-      console.info(`Task Count: ${sw.getTaskCount()}`);
+      // console.info(`Short Summary: ${sw.shortSummary()}`);
+      // console.info(`Task Count: ${sw.getTaskCount()}`);
       // a table describing all tasks performed
-      sw.prettyPrint();
+      // sw.prettyPrint();
       return result;
     } catch (error) {
       return error;
@@ -72,24 +72,32 @@ class Models {
   }
 
   async getStyles(productId) {
+    const sw = new StopWatch('sw');
+    sw.start('Task 1');
     const client = await pool.connect();
+    sw.stop();
 
     let result = {};
     result["product_id"] = productId.product_id;
     result["results"] = [];
 
     try {
+      sw.start('Task 2');
       const styleSql =
         "SELECT style_id, name, default_style FROM styles WHERE product_id = $1;";
       const styleData = await client.query(styleSql, [productId.product_id]);
       const styles = styleData.rows;
+      sw.stop();
 
+      sw.start('Task 3');
       let photoPriceSkuSqlTest =
         "SELECT st.style_id, pr.original_price, pr.sale_price, ph.thumbnail_url, ph.url, sk.sku_id, sk.size, sk.quantity FROM styles st INNER JOIN prices pr ON st.style_id = pr.style_id INNER JOIN photos ph ON st.style_id = ph.style_id INNER JOIN skus sk ON st.style_id = sk.style_id WHERE st.style_id = ANY ($1);";
       let photoPriceSkuDataTest = await client.query(photoPriceSkuSqlTest, [
         styles.map((x) => x.style_id),
       ]);
+      sw.stop();
 
+      sw.start('Task 4');
       for (let i = 0; i < styles.length; i++) {
         let style = {};
         let styleId = styles[i].style_id;
@@ -138,9 +146,15 @@ class Models {
 
         result["results"].push(style);
       }
+      sw.stop();
+      console.info(`Short Summary: ${sw.shortSummary()}`);
+      console.info(`Task Count: ${sw.getTaskCount()}`);
+      sw.prettyPrint();
       return result;
     } catch (error) {
       return error;
+    } finally {
+      client.release();
     }
   }
 
