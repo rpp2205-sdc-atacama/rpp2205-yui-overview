@@ -2,9 +2,6 @@ import pkg from "pg";
 const { Pool } = pkg;
 import dotenv from "dotenv";
 dotenv.config();
-import { StopWatch } from "stopwatch-node";
-
-const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
 
 const pool = new Pool({
   user: process.env.USER,
@@ -90,8 +87,7 @@ class Models {
       let data = photoSkuSqlData.rows;
 
       for (let i = 0; i < data.length; i++) {
-        // console.log('data: ', data)
-        let styleId = data[i].style_id; // 1
+        let styleId = data[i].style_id;
         let thumbnailUrl = data[i].thumbnail_url;
         let url = data[i].url;
 
