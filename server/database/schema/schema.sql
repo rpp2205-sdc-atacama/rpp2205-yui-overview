@@ -59,7 +59,7 @@ create table related (
   product_id integer,
   related_product_id integer,
   foreign key (product_id) references product_info (id)
-)
+);
 
 CREATE index idx_product_id ON product_info(id);
 CREATE index idx_feature_id ON features(product_id);
